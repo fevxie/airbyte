@@ -38,7 +38,7 @@ class GitlabStream(HttpStream, ABC):
 
     @property
     def url_base(self) -> str:
-        return f"https://{self.api_url}/api/v4/"
+        return f"http://{self.api_url}/api/v4/"
 
     def next_page_token(self, response: requests.Response) -> Optional[Mapping[str, Any]]:
         response_data = response.json()

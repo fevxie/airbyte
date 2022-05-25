@@ -4,6 +4,8 @@ FROM python:3.9.11-alpine3.15 as base
 FROM base as builder
 WORKDIR /airbyte/integration_code
 
+RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.tuna.tsinghua.edu.cn/g' /etc/apk/repositories
+
 # upgrade pip to the latest version
 RUN apk --no-cache upgrade \
     && pip install --upgrade pip \
@@ -12,7 +14,7 @@ RUN apk --no-cache upgrade \
 
 COPY setup.py ./
 # install necessary packages to a temporary folder
-RUN pip install --prefix=/install .
+RUN pip install -i https://pypi.tuna.tsinghua.edu.cn/simple --prefix=/install .
 
 # build a clean environment
 FROM base

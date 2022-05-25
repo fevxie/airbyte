@@ -4,27 +4,33 @@ FROM ${JDK_IMAGE} AS sync-attempt
 
 ARG DOCKER_BUILD_ARCH=amd64
 
+RUN sed -i "s@http://deb.debian.org@http://mirrors.aliyun.com@g" /etc/apt/sources.list
+RUN sed -i 's|security.debian.org/debian-security|mirrors.ustc.edu.cn/debian-security|g' /etc/apt/sources.list
+
 # Install Docker to launch orchestrator images. Eventually should be replaced with Docker-java.
 # See https://gitter.im/docker-java/docker-java?at=5f3eb87ba8c1780176603f4e for more information on why we are not currently using Docker-java
 RUN apt-get update && apt-get install -y \
-                          apt-transport-https \
-                          ca-certificates \
-                          curl \
-                          gnupg-agent \
-                          software-properties-common
-RUN curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add -
+       apt-transport-https \
+       ca-certificates \
+       curl \
+       gnupg-agent \
+       software-properties-common
+# RUN curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add -
+RUN curl -fsSL https://mirrors.aliyun.com/docker-ce/linux/debian/gpg | apt-key add -
 # arch var used to detect architecture of container. Architecture should be spcified to get proper binaries from repo.
 RUN arch=$(dpkg --print-architecture) && \
        add-apt-repository \
-       "deb [arch=${arch}] https://download.docker.com/linux/debian \
+       "deb [arch=${arch}] https://mirrors.aliyun.com/docker-ce/linux/debian \
        $(lsb_release -cs) stable"
 RUN apt-get update && apt-get install -y docker-ce-cli jq
 
 # Install kubectl for copying files to kube pods. Eventually should be replaced with a kube java client.
 # See https://github.com/airbytehq/airbyte/issues/8643 for more information on why we are using kubectl for copying.
 # The following commands were taken from https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/#install-using-native-package-management
-RUN curl -fsSLo /usr/share/keyrings/kubernetes-archive-keyring.gpg https://packages.cloud.google.com/apt/doc/apt-key.gpg
-RUN echo "deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | tee /etc/apt/sources.list.d/kubernetes.list
+# RUN curl -fsSLo /usr/share/keyrings/kubernetes-archive-keyring.gpg https://packages.cloud.google.com/apt/doc/apt-key.gpg
+RUN curl -fsSLo /usr/share/keyrings/kubernetes-archive-keyring.gpg https://mirrors.aliyun.com/kubernetes/apt/doc/apt-key.gpg
+# RUN echo "deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | tee /etc/apt/sources.list.d/kubernetes.list
+RUN echo "deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https://mirrors.aliyun.com/kubernetes/apt/ kubernetes-xenial main" | tee /etc/apt/sources.list.d/kubernetes.list
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y kubectl
 
 # Don't change this manually.  Bump version expects to make moves based on this string
